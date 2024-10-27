@@ -7,7 +7,9 @@ npm install
 npm update
 php artisan key:generate
 php artisan migrate
-npm run dev || npm run build
+npm run build
+php artisan storage:link 
+composer require maatwebsite/excel
 ```
 
 ## Команды для самостоятельной сборки с нуля без шаблонов авторизации
