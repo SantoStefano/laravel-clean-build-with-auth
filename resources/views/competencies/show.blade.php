@@ -17,7 +17,7 @@
                     @foreach($platform->attributes as $attribute)
                         <div class="mb-4">
                             <h6 class="text-success fw-bold">{{ $attribute->dictionary->name }}:</h6>
-                            @if($attribute->dictionary->name === 'Инфраструктурный лист')
+                            @if($attribute->dictionary->type === 'file')
                                 @php
                                     $file = App\Models\File::find($attribute->value);
                                 @endphp
@@ -28,6 +28,10 @@
                                 @else
                                     <p class="text-muted">Файл не найден</p>
                                 @endif
+                            @elseif ($attribute->dictionary->type === 'date')
+                                <p class="lead">{{ date('d.m.Y',strtotime($attribute->value)) }}</p>
+                            @elseif ($attribute->dictionary->type === 'link')
+                                <a href="{{ $attribute->value }}">{{ $attribute->value }}</a>
                             @else
                                 <p class="lead">{{ $attribute->value }}</p>
                             @endif

@@ -14,18 +14,19 @@ return new class extends Migration
         Schema::create('platform_attribute_lists', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->enum('type', ['text', 'link', 'file', 'date'])->default('text');
             $table->timestamps();
         });
 
         // Заполняем справочник атрибутов
         DB::table('platform_attribute_lists')->insert([
-            ['name' => 'Место'],
-            ['name' => 'Дата проведения'],
-            ['name' => 'Организаторский сбор'],
-            ['name' => 'Стоимость проживания'],
-            ['name' => 'Стоимость питания'],
-            ['name' => 'Ссылка на сайт'],
-            ['name' => 'Инфраструктурный лист'],
+            ['name' => 'Место', 'type' => 'text'],
+            ['name' => 'Дата проведения', 'type' => 'date'],
+            ['name' => 'Организаторский сбор', 'type' => 'text'],
+            ['name' => 'Стоимость проживания', 'type' => 'text'],
+            ['name' => 'Стоимость питания', 'type' => 'text'],
+            ['name' => 'Ссылка на сайт', 'type' => 'link'],
+            ['name' => 'Инфраструктурный лист', 'type' => 'file'],
         ]);
     }
 

@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\AdminApplicationNotification;
+use App\Mail\MentorApplicationNotification;
 use App\Models\Participant;
 use App\Models\Mentor;
 use App\Models\ParticipantAttributeList;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class ApplicationController extends Controller
 {
@@ -44,6 +48,13 @@ class ApplicationController extends Controller
                     ]);
                 }
             }
+        }
+
+        try {
+            Mail::to($mentor->email)->send(new MentorApplicationNotification($participant));
+            Mail::to('admin@mail.su')->send(new AdminApplicationNotification($participant));
+        } catch (\Exception $e) {
+            Log::error('Ошибка при отправке email: ' . $e->getMessage());
         }
 
         return view('applications.success');

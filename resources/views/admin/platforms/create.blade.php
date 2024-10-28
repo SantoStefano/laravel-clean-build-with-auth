@@ -12,7 +12,7 @@
                 <div class="form-group mb-3">
                     <label for="competency_id">Компетенция</label>
                     <select class="form-control" id="competency_id" name="competency_id" required>
-                        @foreach(\App\Models\Competency::all() as $competency)
+                        @foreach($competencies as $competency)
                             <option value="{{ $competency->id }}">{{ $competency->name }}</option>
                         @endforeach
                     </select>
@@ -21,9 +21,12 @@
                 @foreach($attributes as $attribute)
                 <div class="form-group mb-3">
                     <label for="attr_{{ $attribute->id }}">{{ $attribute->name }}</label>
-                    @if($attribute->name === 'Инфраструктурный лист')
+                    @if($attribute->type === 'file')
                         <input type="file" class="form-control" id="attr_{{ $attribute->id }}" 
                                name="pattributes[{{ $attribute->id }}]">
+                    @elseif ($attribute->type === 'date')
+                        <input type="date" class="form-control" id="attr_{{ $attribute->id }}" 
+                                name="pattributes[{{ $attribute->id }}]">
                     @else
                         <input type="text" class="form-control" id="attr_{{ $attribute->id }}" 
                                name="pattributes[{{ $attribute->id }}]">

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Competency;
 use App\Models\File;
 use App\Models\Platform;
 use App\Models\PlatformAttributeList;
@@ -18,7 +19,8 @@ class PlatformController extends Controller
     public function create()
     {
         $attributes = PlatformAttributeList::all();
-        return view('admin.platforms.create', compact('attributes'));
+        $competencies = Competency::all();
+        return view('admin.platforms.create', compact('attributes', 'competencies'));
     }
 
     public function store(Request $request)
@@ -31,7 +33,7 @@ class PlatformController extends Controller
     foreach ($request->pattributes as $attributeId => $value) {
         $attribute = PlatformAttributeList::find($attributeId);
         
-        if ($attribute->name === 'Инфраструктурный лист' && $request->hasFile("pattributes.{$attributeId}")) {
+        if ($attribute->type === 'file' && $request->hasFile("pattributes.{$attributeId}")) {
             $file = $request->file("pattributes.{$attributeId}");
             $path = $file->store('files', 'public');
             
