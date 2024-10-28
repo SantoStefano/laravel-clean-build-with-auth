@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Чемпионатное движение</title>
+    <title>Чемпионатное движение Профессионалы</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root {
@@ -52,7 +52,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark mb-4">
         <div class="container">
-            <a class="navbar-brand" href="{{ route('home') }}">Чемпионатное движение</a>
+            <a class="navbar-brand" href="{{ route('home') }}">Профессионалы</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -104,11 +104,11 @@
             <div class="row">
                 <div class="col-md-6">
                     <h5>Контакты</h5>
-                    <p>Email: info@championship.ru</p>
-                    <p>Телефон: +7 (999) 123-45-67</p>
+                    <p>Email: pro@firpo.ru</p>
+                    <p>Телефон: +7 (977) 978-29-47</p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <p>&copy; 2024 Чемпионатное движение</p>
+                    <p>&copy; 2024 Чемпионатное движение Профессионалы</p>
                 </div>
             </div>
         </div>
