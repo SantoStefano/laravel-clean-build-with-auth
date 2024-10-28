@@ -10,6 +10,8 @@ class CompetencyController extends Controller
     public function show($id)
     {
         $competency = Competency::with('platforms')->findOrFail($id);
-        return view('competencies.show', compact('competency'));
+        return view('competencies.show', [
+            'competency' => $competency
+        ]);
     }
 }

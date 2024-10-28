@@ -32,13 +32,20 @@
         }
 
         .card {
-            border-color: var(--light-color);
-            transition: transform 0.2s;
+            background-color: #fff;
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .card {
+            transition: all 0.3s ease;
         }
 
         .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.12);
         }
 
         .section-title {
@@ -46,6 +53,10 @@
             border-bottom: 2px solid var(--secondary-color);
             padding-bottom: 10px;
             margin-bottom: 20px;
+        }
+
+        footer {
+            background-color: var(--primary-color);
         }
     </style>
 </head>
@@ -99,7 +110,7 @@
             @yield('content')
     </main>
 
-    <footer class="bg-dark text-light py-4 mt-5">
+    <footer class="text-light py-4 mt-5">
         <div class="container">
             <div class="row">
                 <div class="col-md-6">

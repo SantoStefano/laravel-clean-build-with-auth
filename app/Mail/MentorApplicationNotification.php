@@ -21,7 +21,7 @@ class MentorApplicationNotification extends Mailable
 
     public function build()
     {
-        return $this->subject('Новая заявка на участие')
+        return $this->subject('Вы подали заявку на участие')
                     ->view('emails.mentor_application_email');
     }
 }

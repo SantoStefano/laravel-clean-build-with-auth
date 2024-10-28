@@ -23,7 +23,9 @@ class AdminController extends Controller
     public function participants()
     {
         $participants = Participant::with(['mentor', 'attributes.dictionary'])->get();
-        return view('admin.participants', compact('participants'));
+        return view('admin.participants', [
+            'participants' => $participants
+        ]);
     }
 
     public function platformsIndex()
@@ -31,14 +33,18 @@ class AdminController extends Controller
         $platforms = Platform::with(['competency', 'attributes.dictionary'])
             ->withCount('participants')
             ->get();
-        return view('admin.platforms.index', compact('platforms'));
+        return view('admin.platforms.index', [
+            'platforms' => $platforms
+        ]);
     }
 
     public function platformShow($id)
     {
         $platform = Platform::with(['competency', 'attributes.dictionary', 'participants.attributes.dictionary', 'participants.mentor'])
             ->findOrFail($id);
-        return view('admin.platforms.show', compact('platform'));
+        return view('admin.platforms.show', [
+            'platform' => $platform
+        ]);
     }
 
     public function export()

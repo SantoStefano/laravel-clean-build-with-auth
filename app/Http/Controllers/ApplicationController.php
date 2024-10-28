@@ -16,7 +16,10 @@ class ApplicationController extends Controller
     public function create($platformId)
     {
         $attributes = ParticipantAttributeList::all();
-        return view('applications.create', compact('attributes', 'platformId'));
+        return view('applications.create', [
+            'attributes' => $attributes,
+            'platformId' => $platformId
+        ]);
     }
 
     public function store(Request $request)

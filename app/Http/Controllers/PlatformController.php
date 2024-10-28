@@ -13,14 +13,19 @@ class PlatformController extends Controller
     public function show($id)
     {
         $platform = Platform::with(['attributes.dictionary', 'competency'])->findOrFail($id);
-        return view('platforms.show', compact('platform'));
+        return view('platforms.show', [
+            'platform' => $platform
+        ]);
     }
 
     public function create()
     {
         $attributes = PlatformAttributeList::all();
         $competencies = Competency::all();
-        return view('admin.platforms.create', compact('attributes', 'competencies'));
+        return view('admin.platforms.create', [
+            'attributes' => $attributes, 
+            'competencies' => $competencies
+        ]);
     }
 
     public function store(Request $request)
