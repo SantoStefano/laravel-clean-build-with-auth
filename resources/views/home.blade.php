@@ -15,9 +15,14 @@
         </div>
         <div class="col-md-4">
             <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Интерактивная карта</h5>
-                    <button id="open-map-modal" class="btn btn-primary">Открыть карту</button>
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Интерактивная карта площадок</h5>
+                        <div class="map-preview-container">
+                            <canvas id="map-preview-canvas"></canvas>
+                        </div>
+                        <button id="open-map-modal" class="btn btn-primary mt-3">Открыть карту</button>
+                    </div>
                 </div>
             </div>
             
@@ -86,10 +91,7 @@
     padding: 20px;
     border: 1px solid #888;
     width: 60%; 
-    /* max-width: none;  */
 }
-
-
 
 .close {
     color: #aaa;
@@ -106,7 +108,7 @@
     cursor: pointer;
 }
 
-    .map-container {
+.map-container {
   position: relative;
   display: inline-block;
 }
@@ -114,20 +116,6 @@
 #map-image {
   max-width: 100%;
   height: auto;
-}
-
-.marker {
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  background-color: red;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: box-shadow 0.3s ease;
-}
-
-.marker:hover {
-  box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
 }
 
 #info-box {
@@ -158,9 +146,22 @@
 #info-box.hidden {
   display: none;
 }
+
+.map-preview-container {
+    width: 100%;
+    height: 350px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+#map-preview-canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
 </style>
 <script>
-    const modal = document.getElementById('map-modal');
+const modal = document.getElementById('map-modal');
 const openModalBtn = document.getElementById('open-map-modal');
 const closeModalBtn = document.querySelector('.close');
 const canvas = document.getElementById('map-canvas');
@@ -175,7 +176,7 @@ let markers = [];
 mapImage.onload = function() {
     canvas.width = mapImage.width;
     canvas.height = mapImage.height;
-    drawMap();
+    loadMarkers();
 };
 
 function drawMap() {
@@ -239,7 +240,6 @@ function showInfo(marker, e) {
 
 openModalBtn.onclick = function() {
     modal.style.display = "block";
-    loadMarkers();
 }
 
 closeModalBtn.onclick = function() {
@@ -254,7 +254,7 @@ window.onclick = function(event) {
 
 
 function loadMarkers() {
-    markers = []; // Очистка существующих маркеров
+    markers = []; 
     
     @foreach($platforms as $platform)
         @if($platform->marker)
@@ -280,15 +280,45 @@ function loadMarkers() {
     @endforeach
     
     drawMap();
+    drawPreviewMap();
 }
 
-// Добавьте обработчик изменения размера окна
 window.addEventListener('resize', function() {
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
     drawMap();
+    drawPreviewMap();
 });
 
+const previewCanvas = document.getElementById('map-preview-canvas');
+const previewCtx = previewCanvas.getContext('2d');
+
+function drawPreviewMap() {
+    previewCanvas.width = previewCanvas.offsetWidth;
+    previewCanvas.height = previewCanvas.offsetHeight;
+    
+    const scale = Math.min(previewCanvas.width / mapImage.width, previewCanvas.height / mapImage.height);
+    const scaledWidth = mapImage.width * scale;
+    const scaledHeight = mapImage.height * scale;
+    
+    const offsetX = (previewCanvas.width - scaledWidth) / 2;
+    const offsetY = (previewCanvas.height - scaledHeight) / 2;
+    
+    previewCtx.drawImage(mapImage, offsetX, offsetY, scaledWidth, scaledHeight);
+    
+    markers.forEach(marker => {
+        const x = marker.x * scale + offsetX;
+        const y = marker.y * scale + offsetY;
+        previewCtx.beginPath();
+        previewCtx.arc(x, y, 3, 0, 2 * Math.PI);
+        previewCtx.fillStyle = 'red';
+        previewCtx.fill();
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadMarkers()
+    });
+}
 
     </script>
 @endsection
