@@ -3,14 +3,13 @@
 @section('content')
 <div class="map-page-container">
     <div class="map-container">
-        <img src="/images/map-placeholder.jpg" alt="Карта Иркутской области" id="map-image"/>
-        <div id="markers-container"></div>
+        <canvas id="map-canvas"></canvas>
     </div>
     <div class="platforms-list">
         <h2>Площадки</h2>
         <div class="platforms-grid">
             @foreach($platforms as $platform)
-                <div class="platform-item" draggable="true" data-id="{{ $platform->id }}">
+                <div class="platform-item" data-id="{{ $platform->id }}" draggable="true">
                     {{ $platform->competency->name }}
                 </div>
             @endforeach
@@ -18,109 +17,139 @@
     </div>
 </div>
 
+
 <button id="save-markers">Сохранить расположение маркеров</button>
 
 <script>
-const mapImage = document.getElementById('map-image');
-const markersContainer = document.getElementById('markers-container');
+const canvas = document.getElementById('map-canvas');
+const ctx = canvas.getContext('2d');
+const platformItems = document.querySelectorAll('.platform-item');
+const saveButton = document.getElementById('save-markers');
 
+const mapImage = new Image();
+mapImage.src = '/images/map-placeholder.jpg';
+
+let markers = [];
 let isDragging = false;
 let selectedMarker = null;
-let offsetX, offsetY;
 
-function createMarker(x, y, info, id) {
-  const marker = document.createElement('div');
-  marker.className = 'marker';
-  marker.style.left = x + 'px';
-  marker.style.top = y + 'px';
-  marker.dataset.info = info;
-  marker.dataset.id = id;
+mapImage.onload = function() {
+    canvas.width = mapImage.width;
+    canvas.height = mapImage.height;
+    loadMarkers();
+    drawMap();
+};
 
-  marker.addEventListener('mousedown', startDragging);
-
-  markersContainer.appendChild(marker);
+function drawMap() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(mapImage, 0, 0, canvas.width, canvas.height);
+    drawMarkers();
 }
 
-// Начало перетаскивания
+function drawMarkers() {
+    markers.forEach(marker => {
+        ctx.beginPath();
+        ctx.arc(marker.x, marker.y, 5, 0, 2 * Math.PI);
+        ctx.fillStyle = 'red';
+        ctx.fill();
+    });
+}
+
+function createMarker(x, y, id, info) {
+    markers.push({ x, y, id, info });
+    drawMap();
+}
+
+canvas.addEventListener('mousedown', startDragging);
+canvas.addEventListener('mousemove', drag);
+canvas.addEventListener('mouseup', stopDragging);
+
 function startDragging(e) {
-  isDragging = true;
-  selectedMarker = e.target;
-  offsetX = e.clientX - selectedMarker.offsetLeft;
-  offsetY = e.clientY - selectedMarker.offsetTop;
-  e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    selectedMarker = markers.find(marker => 
+        Math.sqrt((x - marker.x) ** 2 + (y - marker.y) ** 2) < 10
+    );
+
+    if (selectedMarker) {
+        isDragging = true;
+    }
 }
 
-// Перетаскивание
-document.addEventListener('mousemove', (e) => {
-  if (isDragging && selectedMarker) {
-    const x = e.clientX - offsetX;
-    const y = e.clientY - offsetY;
-    selectedMarker.style.left = x + 'px';
-    selectedMarker.style.top = y + 'px';
-  }
-});
+function drag(e) {
+    if (isDragging && selectedMarker) {
+        const rect = canvas.getBoundingClientRect();
+        selectedMarker.x = e.clientX - rect.left;
+        selectedMarker.y = e.clientY - rect.top;
+        drawMap();
+    }
+}
 
-// Конец перетаскивания
-document.addEventListener('mouseup', () => {
-  isDragging = false;
-  selectedMarker = null;
-});
+function stopDragging() {
+    isDragging = false;
+    selectedMarker = null;
+}
 
-// Добавьте код для перетаскивания элементов из списка на карту
-const platformItems = document.querySelectorAll('.platform-item');
 platformItems.forEach(item => {
-  item.addEventListener('dragstart', (e) => {
-    e.dataTransfer.setData('text/plain', e.target.dataset.id);
-  });
+    item.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', e.target.dataset.id);
+    });
 });
 
-mapImage.addEventListener('dragover', (e) => e.preventDefault());
-mapImage.addEventListener('drop', (e) => {
-  e.preventDefault();
-  const id = e.dataTransfer.getData('text');
-  const rect = mapImage.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-  const platformItem = document.querySelector(`.platform-item[data-id="${id}"]`);
-  
-  // Проверяем, существует ли уже маркер для этой платформы
-  const existingMarker = document.querySelector(`.marker[data-id="${id}"]`);
-  if (existingMarker) {
-    existingMarker.style.left = x + 'px';
-    existingMarker.style.top = y + 'px';
-  } else {
-    createMarker(x, y, platformItem.textContent, id);
-  }
+canvas.addEventListener('dragover', (e) => e.preventDefault());
+canvas.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const id = e.dataTransfer.getData('text');
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const platformItem = document.querySelector(`.platform-item[data-id="${id}"]`);
+    
+    const existingMarkerIndex = markers.findIndex(marker => marker.id === id);
+    if (existingMarkerIndex !== -1) {
+        markers[existingMarkerIndex].x = x;
+        markers[existingMarkerIndex].y = y;
+    } else {
+        createMarker(x, y, id, platformItem.textContent);
+    }
+    drawMap();
 });
 
-// Добавьте код для сохранения маркеров
-document.getElementById('save-markers').addEventListener('click', () => {
-  const markers = document.querySelectorAll('.marker');
-  const markersData = Array.from(markers).map(marker => ({
-    id: marker.dataset.id,
-    x: parseFloat(marker.style.left),
-    y: parseFloat(marker.style.top)
-  }));
+saveButton.addEventListener('click', () => {
+    const markersData = markers.map(marker => ({
+        id: marker.id,
+        x: marker.x,
+        y: marker.y
+    }));
 
-  fetch('{{ route("admin.map.update") }}', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-    },
-    body: JSON.stringify({ markers: markersData })
-  })
-  .then(response => response.json())
-  .then(data => alert(data.message))
-  .catch(error => console.error('Error:', error));
+    fetch('{{ route("admin.map.update") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ markers: markersData })
+    })
+    .then(response => response.json())
+    .then(data => alert(data.message))
+    .catch(error => console.error('Error:', error));
 });
 
-// Инициализация маркеров для платформ, у которых уже есть сохраненные координаты
-@foreach($platforms as $platform)
-  @if($platform->marker)
-    createMarker({{ $platform->marker->x }}, {{ $platform->marker->y }}, '{{ $platform->competency->name }}', {{ $platform->id }});
-  @endif
-@endforeach
+function loadMarkers() {
+    @foreach($platforms as $platform)
+        @if($platform->marker)
+            createMarker(
+                {{ $platform->marker->x }},
+                {{ $platform->marker->y }},
+                {{ $platform->id }},
+                '{{ $platform->competency->name }}'
+            );
+        @endif
+    @endforeach
+}
+
 </script>
 
 <style>
@@ -128,7 +157,7 @@ document.getElementById('save-markers').addEventListener('click', () => {
         display: flex;
         gap: 20px;
         margin-bottom: 20px;
-        height: calc(100vh - 100px); 
+        /* height: calc(100vh - 100px);  */
     }
     
     .platforms-list {

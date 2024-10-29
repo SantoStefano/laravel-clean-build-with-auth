@@ -15,12 +15,23 @@
         </div>
         <div class="col-md-4">
             <div class="card">
-                <div class="card-body map-container">
+                <div class="card-body">
                     <h5 class="card-title">Интерактивная карта</h5>
-                    <img src="/images/map-placeholder.jpg" class="img-fluid" alt="Карта площадок">
-                    <div id="markers-container"></div>
+                    <button id="open-map-modal" class="btn btn-primary">Открыть карту</button>
+                </div>
+            </div>
+            
+            <!-- Модальное окно -->
+            <div id="map-modal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <div class="map-container">
+                        <canvas id="map-canvas"></canvas>
+                    </div>
                     <div id="info-box" class="hidden"></div>
                 </div>
+            </div>
+            
             </div>
         </div>
     </div>
@@ -57,6 +68,44 @@
 </div>
 
 <style>
+    .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 60%; 
+    /* max-width: none;  */
+}
+
+
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
     .map-container {
   position: relative;
   display: inline-block;
@@ -105,55 +154,141 @@
 #info-box.visible {
   display: block;
 }
+
+#info-box.hidden {
+  display: none;
+}
 </style>
 <script>
-    const markersContainer = document.getElementById('markers-container');
-    const infoBox = document.getElementById('info-box');
-    
-    // Функция для создания маркера
-    function createMarker(x, y, info) {
-      const marker = document.createElement('div');
-      marker.className = 'marker';
-      marker.style.left = x + 'px';
-      marker.style.top = y + 'px';
-      marker.dataset.info = info;
-    
-      marker.addEventListener('click', showInfo);
-    
-      markersContainer.appendChild(marker);
-    }
-    
-    // Показать информацию при клике
-    function showInfo(e) {
-      const info = e.target.dataset.info;
-      infoBox.textContent = info;
-      infoBox.style.left = (e.pageX + 10) + 'px';
-      infoBox.style.top = (e.pageY + 10) + 'px';
-      infoBox.classList.add('visible');
-    }
-    
-    // Скрыть информацию при клике вне маркера
-    document.addEventListener('click', (e) => {
-      if (!e.target.classList.contains('marker')) {
-        infoBox.classList.remove('visible');
-      }
+    const modal = document.getElementById('map-modal');
+const openModalBtn = document.getElementById('open-map-modal');
+const closeModalBtn = document.querySelector('.close');
+const canvas = document.getElementById('map-canvas');
+const ctx = canvas.getContext('2d');
+const infoBox = document.getElementById('info-box');
+
+const mapImage = new Image();
+mapImage.src = '/images/map-placeholder.jpg';
+
+let markers = [];
+
+mapImage.onload = function() {
+    canvas.width = mapImage.width;
+    canvas.height = mapImage.height;
+    drawMap();
+};
+
+function drawMap() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(mapImage, 0, 0, canvas.width, canvas.height);
+    drawMarkers();
+}
+
+function drawMarkers() {
+    markers.forEach(marker => {
+        ctx.beginPath();
+        ctx.arc(marker.x, marker.y, 5, 0, 2 * Math.PI);
+        ctx.fillStyle = 'red';
+        ctx.fill();
     });
+}
+
+function createMarker(x, y, info) {
+    markers.push({ x, y, info });
+    drawMap();
+}
+
+canvas.addEventListener('click', function(e) {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
     
-    // Загрузка маркеров из базы данных
+    const clickedMarker = markers.find(marker => 
+        Math.sqrt((x - marker.x) ** 2 + (y - marker.y) ** 2) < 10
+    );
+
+    if (clickedMarker) {
+        showInfo(clickedMarker, e);
+    } else {
+        infoBox.classList.add('hidden');
+        infoBox.classList.remove('visible');
+    }
+});
+
+function showInfo(marker, e) {
+    infoBox.innerHTML = marker.info;
+    const rect = canvas.getBoundingClientRect();
+    const modalRect = modal.getBoundingClientRect();
+    
+    let left = marker.x - modalRect.left;
+    let top = marker.y  - modalRect.top;
+    
+    // Проверка, чтобы инфобокс не выходил за пределы экрана
+    if (left + infoBox.offsetWidth > window.innerWidth) {
+        left = window.innerWidth - infoBox.offsetWidth - 20;
+    }
+    if (top + infoBox.offsetHeight > window.innerHeight) {
+        top = window.innerHeight - infoBox.offsetHeight - 20;
+    }
+    
+    infoBox.style.left = left + 'px';
+    infoBox.style.top = top + 'px';
+    infoBox.classList.remove('hidden');
+    infoBox.classList.add('visible');
+}
+
+openModalBtn.onclick = function() {
+    modal.style.display = "block";
+    loadMarkers();
+}
+
+closeModalBtn.onclick = function() {
+    modal.style.display = "none";
+}
+
+window.onclick = function(event) {
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+
+
+function loadMarkers() {
+    markers = []; // Очистка существующих маркеров
+    
     @foreach($platforms as $platform)
-      @if($platform->marker)
-        createMarker(
-          {{ $platform->marker->x }}, 
-          {{ $platform->marker->y }}, 
-          `
-          <h3>{{ $platform->competency->name }}</h3>
-          <p>Статус: {{ $platform->status ? 'Активна' : 'Неактивна' }}</p>
-          @foreach($platform->attributes as $attribute)
-            <p>{{ $attribute->dictionary->name }}: {{ $attribute->value }}</p>
-          @endforeach
-          `
-        );
-      @endif
+        @if($platform->marker)
+            createMarker(
+                {{ $platform->marker->x }}, 
+                {{ $platform->marker->y }}, 
+                `
+                <h3>{{ $platform->competency->name }}</h3>
+                <p>Статус: {{ $platform->status ? 'Активна' : 'Неактивна' }}</p>
+                @foreach($platform->attributes as $attribute)
+                    @if( $attribute->dictionary->type === 'file')
+                        @continue;
+                    @else
+                    <p>{{ $attribute->dictionary->name }}: {{ $attribute->value }}</p>
+                    @endif
+                @endforeach
+                <a href="{{ route('competencies.show', $platform->competency->id) }}" class="btn btn-primary btn-lg w-100">
+                        Перейти на площадку
+                    </a>
+                `
+            );
+        @endif
     @endforeach
+    
+    drawMap();
+}
+
+// Добавьте обработчик изменения размера окна
+window.addEventListener('resize', function() {
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    drawMap();
+});
+
+
     </script>
 @endsection
