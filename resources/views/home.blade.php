@@ -15,9 +15,11 @@
         </div>
         <div class="col-md-4">
             <div class="card">
-                <div class="card-body">
+                <div class="card-body map-container">
                     <h5 class="card-title">Интерактивная карта</h5>
                     <img src="/images/map-placeholder.jpg" class="img-fluid" alt="Карта площадок">
+                    <div id="markers-container"></div>
+                    <div id="info-box" class="hidden"></div>
                 </div>
             </div>
         </div>
@@ -53,4 +55,105 @@
         </div>
     </div>
 </div>
+
+<style>
+    .map-container {
+  position: relative;
+  display: inline-block;
+}
+
+#map-image {
+  max-width: 100%;
+  height: auto;
+}
+
+.marker {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background-color: red;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: box-shadow 0.3s ease;
+}
+
+.marker:hover {
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+}
+
+#info-box {
+  position: absolute;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  max-width: 300px;
+  z-index: 1000;
+}
+
+#info-box h3 {
+  margin-top: 0;
+  color: #333;
+}
+
+#info-box p {
+  margin: 5px 0;
+  color: #666;
+}
+
+#info-box.visible {
+  display: block;
+}
+</style>
+<script>
+    const markersContainer = document.getElementById('markers-container');
+    const infoBox = document.getElementById('info-box');
+    
+    // Функция для создания маркера
+    function createMarker(x, y, info) {
+      const marker = document.createElement('div');
+      marker.className = 'marker';
+      marker.style.left = x + 'px';
+      marker.style.top = y + 'px';
+      marker.dataset.info = info;
+    
+      marker.addEventListener('click', showInfo);
+    
+      markersContainer.appendChild(marker);
+    }
+    
+    // Показать информацию при клике
+    function showInfo(e) {
+      const info = e.target.dataset.info;
+      infoBox.textContent = info;
+      infoBox.style.left = (e.pageX + 10) + 'px';
+      infoBox.style.top = (e.pageY + 10) + 'px';
+      infoBox.classList.add('visible');
+    }
+    
+    // Скрыть информацию при клике вне маркера
+    document.addEventListener('click', (e) => {
+      if (!e.target.classList.contains('marker')) {
+        infoBox.classList.remove('visible');
+      }
+    });
+    
+    // Загрузка маркеров из базы данных
+    @foreach($platforms as $platform)
+      @if($platform->marker)
+        createMarker(
+          {{ $platform->marker->x }}, 
+          {{ $platform->marker->y }}, 
+          `
+          <h3>{{ $platform->competency->name }}</h3>
+          <p>Статус: {{ $platform->status ? 'Активна' : 'Неактивна' }}</p>
+          @foreach($platform->attributes as $attribute)
+            <p>{{ $attribute->dictionary->name }}: {{ $attribute->value }}</p>
+          @endforeach
+          `
+        );
+      @endif
+    @endforeach
+    </script>
 @endsection

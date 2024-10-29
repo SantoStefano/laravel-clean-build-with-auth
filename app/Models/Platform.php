@@ -22,4 +22,9 @@ class Platform extends Model
     {
         return $this->hasMany(Participant::class);
     }
+
+    public function marker()
+    {
+        return $this->hasOne(PlatformMarker::class);
+    }
 }

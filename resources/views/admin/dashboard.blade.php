@@ -17,6 +17,9 @@
                     <a href="{{ route('admin.platforms.index') }}" class="btn btn-primary">
                         Все площадки
                     </a>
+                    <a href="{{ route('admin.map') }}" class="btn btn-primary">
+                        Карта
+                    </a>
                 </div>
             </div>
         </div>
