@@ -182,21 +182,40 @@ mapImage.onload = function() {
 function drawMap() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(mapImage, 0, 0, canvas.width, canvas.height);
-    drawMarkers();
+    drawBlinkingMarkers();
+    requestAnimationFrame(drawMap);
 }
 
-function drawMarkers() {
+
+document.addEventListener('DOMContentLoaded', function() {
+        loadMarkers();
+        requestAnimationFrame(drawPreviewMap);
+    });
+
+    function drawBlinkingMarkers() {
+    const now = Date.now();
     markers.forEach(marker => {
+        // Рисуем основную точку
         ctx.beginPath();
-        ctx.arc(marker.x, marker.y, 5, 0, 2 * Math.PI);
+        ctx.arc(marker.x, marker.y, 7, 0, 2 * Math.PI);
         ctx.fillStyle = 'red';
+        ctx.fill();
+
+        // Рисуем пульсирующий ореол
+        const maxRadius = 18;
+        const minRadius = 10;
+        const pulseFactor = (Math.sin(now / 300) + 1) / 2; 
+        const currentRadius = minRadius + pulseFactor * (maxRadius - minRadius);
+
+        ctx.beginPath();
+        ctx.arc(marker.x, marker.y, currentRadius, 0, 2 * Math.PI);
+        ctx.fillStyle = `rgba(255, 0, 0, ${0.3 - pulseFactor * 0.3})`;
         ctx.fill();
     });
 }
 
 function createMarker(x, y, info) {
     markers.push({ x, y, info });
-    drawMap();
 }
 
 canvas.addEventListener('click', function(e) {
@@ -205,7 +224,7 @@ canvas.addEventListener('click', function(e) {
     const y = e.clientY - rect.top;
     
     const clickedMarker = markers.find(marker => 
-        Math.sqrt((x - marker.x) ** 2 + (y - marker.y) ** 2) < 10
+        Math.sqrt((x - marker.x) ** 2 + (y - marker.y) ** 2) < 14
     );
 
     if (clickedMarker) {
@@ -279,7 +298,7 @@ function loadMarkers() {
         @endif
     @endforeach
     
-    drawMap();
+    requestAnimationFrame(drawMap);
     drawPreviewMap();
 }
 
@@ -309,15 +328,27 @@ function drawPreviewMap() {
     markers.forEach(marker => {
         const x = marker.x * scale + offsetX;
         const y = marker.y * scale + offsetY;
+        const now = Date.now();
+        // Рисуем основную точку
         previewCtx.beginPath();
-        previewCtx.arc(x, y, 3, 0, 2 * Math.PI);
+        previewCtx.arc(x, y, 4, 0, 2 * Math.PI);
         previewCtx.fillStyle = 'red';
+        previewCtx.fill();
+
+        // Рисуем пульсирующий ореол
+        const maxRadius = 10;
+        const minRadius = 5;
+        const pulseFactor = (Math.sin(now / 300) + 1) / 2; // от 0 до 1
+        const currentRadius = minRadius + pulseFactor * (maxRadius - minRadius);
+
+        previewCtx.beginPath();
+        previewCtx.arc(x, y, currentRadius, 0, 2 * Math.PI);
+        previewCtx.fillStyle = `rgba(255, 0, 0, ${0.3 - pulseFactor * 0.3})`;
         previewCtx.fill();
     });
 
-    document.addEventListener('DOMContentLoaded', function() {
-        loadMarkers()
-    });
+
+    requestAnimationFrame(drawPreviewMap);
 }
 
     </script>
