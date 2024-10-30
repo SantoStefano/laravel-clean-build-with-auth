@@ -4,7 +4,7 @@
 <div class="container">
     <h1 class="section-title">Подача заявки</h1>
     
-    <form action="{{ route('applications.store') }}" method="POST" class="card">
+    <form action="{{ route('applications.store') }}" method="POST" class="card" enctype="multipart/form-data">
         @csrf
         <input type="hidden" name="platform_id" value="{{ $platformId }}">
         
@@ -56,11 +56,27 @@
             </div>
             <div id="studentFields" style="display: none;">
                 @foreach($attributes as $attribute)
-                    @if($attribute->type === 'student' || $attribute->type === 'all')
+                    @if($attribute->participant_type === 'student' || $attribute->participant_type === 'all')
                     <div class="form-group mb-3">
+                        @if ($attribute->type === 'file')
+                            <label for="student_attr_{{ $attribute->id }}">{{ $attribute->name }}</label>
+                            <input type="file" class="form-control" id="student_attr_{{ $attribute->id }}" 
+                                name="student_attributes[{{ $attribute->id }}]">
+                        @elseif ($attribute->type === 'checkbox')
+                            <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="student_attr_{{ $attribute->id }}" 
+                                name="student_attributes[{{ $attribute->id }}]" value="Да">
+                            <label class="form-check-label" for="student_attr_{{ $attribute->id }}">{{ $attribute->name }}</label>
+                            </div>
+                        @elseif ($attribute->type === 'date')
+                            <label for="student_attr_{{ $attribute->id }}">{{ $attribute->name }}</label>
+                            <input type="date" class="form-control" id="student_attr_{{ $attribute->id }}" 
+                                name="student_attributes[{{ $attribute->id }}]">
+                        @else
                         <label for="student_attr_{{ $attribute->id }}">{{ $attribute->name }}</label>
                         <input type="text" class="form-control" id="student_attr_{{ $attribute->id }}" 
                                name="student_attributes[{{ $attribute->id }}]">
+                        @endif
                     </div>
                     @endif
                 @endforeach
@@ -68,12 +84,28 @@
             
             <div id="schoolchildFields" style="display: none;">
                 @foreach($attributes as $attribute)
-                    @if($attribute->type === 'schoolchild' || $attribute->type === 'all')
+                    @if($attribute->participant_type === 'schoolchild' || $attribute->participant_type === 'all')
                     <div class="form-group mb-3">
-                        <label for="schoolchild_attr_{{ $attribute->id }}">{{ $attribute->name }}</label>
-                        <input type="text" class="form-control" id="schoolchild_attr_{{ $attribute->id }}" 
-                               name="schoolchild_attributes[{{ $attribute->id }}]">
-                    </div>
+                        @if ($attribute->type === 'file')
+                            <label for="schoolchild_attr_{{ $attribute->id }}">{{ $attribute->name }}</label>
+                            <input type="file" class="form-control" id="schoolchild_attr_{{ $attribute->id }}" 
+                                name="schoolchild_attributes[{{ $attribute->id }}]">
+                        @elseif ($attribute->type === 'checkbox')
+                            <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="schoolchild_attr_{{ $attribute->id }}" 
+                                name="schoolchild_attributes[{{ $attribute->id }}]" value="Да">
+                            <label class="form-check-label" for="schoolchild_attr_{{ $attribute->id }}">{{ $attribute->name }}</label>
+                            </div>
+                        @elseif ($attribute->type === 'date')
+                            <label for="schoolchild_attr_{{ $attribute->id }}">{{ $attribute->name }}</label>
+                            <input type="date" class="form-control" id="schoolchild_attr_{{ $attribute->id }}" 
+                                name="schoolchild_attributes[{{ $attribute->id }}]">
+                        @else
+                            <label for="schoolchild_attr_{{ $attribute->id }}">{{ $attribute->name }}</label>
+                            <input type="text" class="form-control" id="schoolchild_attr_{{ $attribute->id }}" 
+                                name="schoolchild_attributes[{{ $attribute->id }}]">
+                        @endif
+                     </div>
                     @endif
                 @endforeach
             </div>

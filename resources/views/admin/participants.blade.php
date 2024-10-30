@@ -38,7 +38,18 @@
                                         <td>{{ $participant->platform->competency->name ?? 'Не указано' }}</td>
                                         <td>
                                             @foreach($participant->attributes as $attribute)
+                                                @if ($attribute->dictionary->type === 'file')
+                                                    @php
+                                                    $file = App\Models\File::find($attribute->value);
+                                                    @endphp
+                                                    @if($file)
+                                                     <strong>{{ $attribute->dictionary->name }}:<a href="{{ Storage::url($file->path) }}" download class="btn btn-outline-primary btn-sm">
+                                                            Скачать {{ $file->name }}
+                                                        </a>  
+                                                    @endif
+                                                @else
                                                 <strong>{{ $attribute->dictionary->name }}:</strong> {{ $attribute->value }}<br>
+                                                @endif
                                             @endforeach
                                         </td>
                                         <td>{{ $participant->mentor->name ?? 'Не указано' }}</td>

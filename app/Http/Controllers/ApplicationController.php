@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Mail\AdminApplicationNotification;
 use App\Mail\MentorApplicationNotification;
+use App\Models\File;
 use App\Models\Participant;
 use App\Models\Mentor;
 use App\Models\ParticipantAttributeList;
@@ -45,6 +46,25 @@ class ApplicationController extends Controller
         if ($request->has($attributeKey)) {
             foreach ($request->$attributeKey as $attributeId => $value) {
                 if (!empty($value)) { 
+
+                    $attribute = ParticipantAttributeList::find($attributeId);
+                    // dd($request->$attributeKey);
+                    if ($attribute->type === 'file' && $request->hasFile("$attributeKey.{$attributeId}")) {
+                        // dd($request->hasFile("$attributeKey.{$attributeId}"));
+                        $file = $request->file("$attributeKey.{$attributeId}");
+                        $path = $file->store('files', 'public');
+                        
+                        $fileModel = File::create([
+                            'name' => $file->getClientOriginalName(),
+                            'path' => $path,
+                            'mime_type' => $file->getMimeType(),
+                            'size' => $file->getSize(),
+                        ]);
+                        
+                        $value = $fileModel->id;
+                    }
+
+
                     $participant->attributes()->create([
                         'attribute_id' => $attributeId,
                         'value' => $value

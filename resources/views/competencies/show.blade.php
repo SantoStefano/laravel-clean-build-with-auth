@@ -11,7 +11,7 @@
             @if($platform->status)
             <div class="card shadow">
                 <div class="card-header bg-success text-white">
-                    <h3 class="mb-0">Платформа:</h3>
+                    <h3 class="mb-0">Площадка:</h3>
                 </div>
                 <div class="card-body">
                     @foreach($platform->attributes as $attribute)
