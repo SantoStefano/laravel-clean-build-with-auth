@@ -5,6 +5,7 @@
     <div class="map-container">
         <canvas id="map-canvas"></canvas>
     </div>
+    <div id="info-box" class="hidden"></div>
     <div class="platforms-list">
         <h2>Площадки</h2>
         <div class="platforms-grid" id="platforms-grid">
@@ -105,6 +106,35 @@
         background-color: #45a049;
     }
 
+    #info-box {
+        position: absolute;
+        background-color: white;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        max-width: 300px;
+        z-index: 1000;
+        }
+
+        #info-box h3 {
+        margin-top: 0;
+        color: #333;
+        }
+
+        #info-box p {
+        margin: 5px 0;
+        color: #666;
+        }
+
+        #info-box.visible {
+        display: block;
+        }
+
+        #info-box.hidden {
+        display: none;
+        }
+
 
     .platforms-list::-webkit-scrollbar {
         width: 8px;
@@ -130,6 +160,7 @@ const ctx = canvas.getContext('2d');
 const platformsGrid = document.getElementById('platforms-grid');
 const platformItems = document.querySelectorAll('.platform-item');
 const saveButton = document.getElementById('save-markers');
+const infoBox = document.getElementById('info-box');
 
 const mapImage = new Image();
 mapImage.src = '/images/map-placeholder.jpg';
@@ -161,7 +192,6 @@ function drawMarkers() {
 }
 
 function createMarker(x, y, id, info) {
-    console.log('create')
     markers.push({ x, y, id, info });
     drawMap();
 }
@@ -302,6 +332,36 @@ function loadMarkers() {
             removePlatformFromList({{ $platform->id }});
         @endif
     @endforeach
+}
+
+canvas.addEventListener('click', function(e) {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const clickedMarker = markers.find(marker => 
+        Math.sqrt((x - marker.x) ** 2 + (y - marker.y) ** 2) < 14
+    );
+
+    if (clickedMarker) {
+        showInfo(clickedMarker, e);
+    } else {
+        infoBox.classList.add('hidden');
+        infoBox.classList.remove('visible');
+    }
+});
+
+function showInfo(marker, e) {
+    infoBox.innerHTML = marker.info;
+    const rect = canvas.getBoundingClientRect();
+   
+    let left = marker.x 
+    let top = marker.y  - rect.top;
+    
+    infoBox.style.left = left + 'px';
+    infoBox.style.top = top + 'px';
+    infoBox.classList.remove('hidden');
+    infoBox.classList.add('visible');
 }
 
 </script>
