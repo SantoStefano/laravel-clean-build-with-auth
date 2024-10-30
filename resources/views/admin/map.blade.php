@@ -7,7 +7,7 @@
     </div>
     <div class="platforms-list">
         <h2>Площадки</h2>
-        <div class="platforms-grid">
+        <div class="platforms-grid" id="platforms-grid">
             @foreach($platforms as $platform)
                 <div class="platform-item" data-id="{{ $platform->id }}" draggable="true">
                     {{ $platform->competency->name }}
@@ -17,12 +17,117 @@
     </div>
 </div>
 
-
 <button id="save-markers">Сохранить расположение маркеров</button>
+
+<style>
+    .map-page-container {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+        /* height: calc(100vh - 100px);  */
+    }
+
+    .platforms-list {
+        flex: 0 0 300px;
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+
+    .platforms-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .platform-item {
+        cursor: move;
+        padding: 10px;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        text-align: center;
+        aspect-ratio: 1 / 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+    }
+
+    .map-container {
+        flex: 1;
+        position: relative;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    #map-image {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    #markers-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+    }
+
+    .marker {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        background-color: red;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: box-shadow 0.3s ease;
+        pointer-events: auto;
+    }
+
+    .marker:hover {
+        box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+    }
+
+    #save-markers {
+        display: block;
+        margin: 20px auto;
+        padding: 10px 20px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    #save-markers:hover {
+        background-color: #45a049;
+    }
+
+
+    .platforms-list::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .platforms-list::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    .platforms-list::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+    }
+
+    .platforms-list::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+</style>
 
 <script>
 const canvas = document.getElementById('map-canvas');
 const ctx = canvas.getContext('2d');
+const platformsGrid = document.getElementById('platforms-grid');
 const platformItems = document.querySelectorAll('.platform-item');
 const saveButton = document.getElementById('save-markers');
 
@@ -56,13 +161,21 @@ function drawMarkers() {
 }
 
 function createMarker(x, y, id, info) {
+    console.log('create')
     markers.push({ x, y, id, info });
     drawMap();
 }
 
-canvas.addEventListener('mousedown', startDragging);
+canvas.addEventListener('mousedown', handleMouseDown);
 canvas.addEventListener('mousemove', drag);
 canvas.addEventListener('mouseup', stopDragging);
+canvas.addEventListener('contextmenu', handleRightClick);
+
+function handleMouseDown(e) {
+    if (e.button === 0) { 
+        startDragging(e);
+    }
+}
 
 function startDragging(e) {
     const rect = canvas.getBoundingClientRect();
@@ -92,6 +205,42 @@ function stopDragging() {
     selectedMarker = null;
 }
 
+function handleRightClick(e) {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const markerIndex = markers.findIndex(marker => 
+        Math.sqrt((x - marker.x) ** 2 + (y - marker.y) ** 2) < 10
+    );
+
+    if (markerIndex !== -1) {
+        const removedMarker = markers.splice(markerIndex, 1)[0];
+        drawMap();
+        addPlatformToList(removedMarker.id, removedMarker.info);
+    }
+}
+
+function addPlatformToList(id, info) {
+    const platformItem = document.createElement('div');
+    platformItem.className = 'platform-item';
+    platformItem.setAttribute('data-id', id);
+    platformItem.setAttribute('draggable', 'true');
+    platformItem.textContent = info;
+    platformItem.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', e.target.dataset.id);
+    });
+    platformsGrid.appendChild(platformItem);
+}
+
+function removePlatformFromList(id) {
+    const platformItem = document.querySelector(`.platform-item[data-id="${id}"]`);
+    if (platformItem) {
+        platformItem.remove();
+    }
+}
+
 platformItems.forEach(item => {
     item.addEventListener('dragstart', (e) => {
         e.dataTransfer.setData('text/plain', e.target.dataset.id);
@@ -102,19 +251,23 @@ canvas.addEventListener('dragover', (e) => e.preventDefault());
 canvas.addEventListener('drop', (e) => {
     e.preventDefault();
     const id = e.dataTransfer.getData('text');
+    console.log(e.dataTransfer.getData('text'));
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     const platformItem = document.querySelector(`.platform-item[data-id="${id}"]`);
     
-    const existingMarkerIndex = markers.findIndex(marker => marker.id === id);
-    if (existingMarkerIndex !== -1) {
-        markers[existingMarkerIndex].x = x;
-        markers[existingMarkerIndex].y = y;
-    } else {
-        createMarker(x, y, id, platformItem.textContent);
+    if (platformItem) {
+        const existingMarkerIndex = markers.findIndex(marker => marker.id === id);
+        if (existingMarkerIndex !== -1) {
+            markers[existingMarkerIndex].x = x;
+            markers[existingMarkerIndex].y = y;
+        } else {
+            createMarker(x, y, id, platformItem.textContent);
+        }
+        removePlatformFromList(id);
+        drawMap();
     }
-    drawMap();
 });
 
 saveButton.addEventListener('click', () => {
@@ -123,7 +276,7 @@ saveButton.addEventListener('click', () => {
         x: marker.x,
         y: marker.y
     }));
-
+    console.log(JSON.stringify({ markers: markersData }));
     fetch('{{ route("admin.map.update") }}', {
         method: 'POST',
         headers: {
@@ -146,115 +299,11 @@ function loadMarkers() {
                 {{ $platform->id }},
                 '{{ $platform->competency->name }}'
             );
+            removePlatformFromList({{ $platform->id }});
         @endif
     @endforeach
 }
 
 </script>
 
-<style>
-    .map-page-container {
-        display: flex;
-        gap: 20px;
-        margin-bottom: 20px;
-        /* height: calc(100vh - 100px);  */
-    }
-    
-    .platforms-list {
-        flex: 0 0 300px;
-        overflow-y: auto;
-        padding-right: 10px;
-    }
-    
-    .platforms-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-    }
-    
-    .platform-item {
-        cursor: move;
-        padding: 10px;
-        background-color: #f0f0f0;
-        border: 1px solid #ccc;
-        border-radius: 3px;
-        text-align: center;
-        aspect-ratio: 1 / 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 14px;
-    }
-    
-    .map-container {
-        flex: 1;
-        position: relative;
-        height: 100%;
-        overflow: hidden;
-    }
-    
-    #map-image {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-    }
-    
-    #markers-container {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-    }
-    
-    .marker {
-        position: absolute;
-        width: 20px;
-        height: 20px;
-        background-color: red;
-        border-radius: 50%;
-        cursor: pointer;
-        transition: box-shadow 0.3s ease;
-        pointer-events: auto;
-    }
-    
-    .marker:hover {
-        box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
-    }
-    
-    #save-markers {
-        display: block;
-        margin: 20px auto;
-        padding: 10px 20px;
-        background-color: #4CAF50;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-    
-    #save-markers:hover {
-        background-color: #45a049;
-    }
-    
-    
-    .platforms-list::-webkit-scrollbar {
-        width: 8px;
-    }
-    
-    .platforms-list::-webkit-scrollbar-track {
-        background: #f1f1f1;
-    }
-    
-    .platforms-list::-webkit-scrollbar-thumb {
-        background: #888;
-        border-radius: 4px;
-    }
-    
-    .platforms-list::-webkit-scrollbar-thumb:hover {
-        background: #555;
-    }
-    </style>
-</style>
 @endsection

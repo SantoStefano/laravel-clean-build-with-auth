@@ -76,8 +76,8 @@ Route::prefix('admin')->group(function () {
         Route::get('/participants/{password?}', [AdminController::class, 'participants'])->name('admin.participants');
         Route::get('/platforms/{id}/{password?}', [AdminController::class, 'platformShow'])->name('admin.platforms.show');
         Route::get('/platforms/{password?}', [AdminController::class, 'platformsIndex'])->name('admin.platforms.index');
-        Route::get('/admin/map', [MapController::class, 'index'])->name('admin.map');
-        Route::post('/admin/map/update', [MapController::class, 'update'])->name('admin.map.update');
+        Route::get('/map', [MapController::class, 'index'])->name('admin.map');
+        Route::post('/map/update', [MapController::class, 'update'])->name('admin.map.update');
     });
 });
 
