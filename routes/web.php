@@ -78,6 +78,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/platforms/{password?}', [AdminController::class, 'platformsIndex'])->name('admin.platforms.index');
         Route::get('/map', [MapController::class, 'index'])->name('admin.map');
         Route::post('/map/update', [MapController::class, 'update'])->name('admin.map.update');
+        Route::get('/map/delete', [MapController::class, 'delete'])->name('admin.map.delete');
     });
 });
 

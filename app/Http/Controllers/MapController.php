@@ -24,7 +24,7 @@ class MapController extends Controller
             'markers.*.x' => 'required|numeric',
             'markers.*.y' => 'required|numeric',
         ]);
-
+        
         foreach ($data['markers'] as $marker) {
             PlatformMarker::updateOrCreate(
                 ['platform_id' => $marker['id']],
@@ -32,6 +32,15 @@ class MapController extends Controller
             );
         }
 
+        if ($request->has('deletedMarkers')) {
+            PlatformMarker::whereIn('platform_id', $request->deletedMarkers)->delete();
+        }
+
         return response()->json(['message' => 'Маркеры успешно обновлены']);
+    }
+
+    public function delete() {
+        PlatformMarker::truncate();
+        return back();
     }
 }

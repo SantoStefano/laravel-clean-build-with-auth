@@ -4,8 +4,8 @@
 <div class="map-page-container">
     <div class="map-container">
         <canvas id="map-canvas"></canvas>
+        <div id="info-box" class="hidden"></div>
     </div>
-    <div id="info-box" class="hidden"></div>
     <div class="platforms-list">
         <h2>Площадки</h2>
         <div class="platforms-grid" id="platforms-grid">
@@ -19,7 +19,7 @@
 </div>
 
 <button id="save-markers">Сохранить расположение маркеров</button>
-
+<a href="{{route('admin.map.delete')}}" class="btn btn-danger mt-3">Удалить все маркеры</a>
 <style>
     .map-page-container {
         display: flex;
@@ -67,33 +67,9 @@
         object-fit: contain;
     }
 
-    #markers-container {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-    }
-
-    .marker {
-        position: absolute;
-        width: 20px;
-        height: 20px;
-        background-color: red;
-        border-radius: 50%;
-        cursor: pointer;
-        transition: box-shadow 0.3s ease;
-        pointer-events: auto;
-    }
-
-    .marker:hover {
-        box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
-    }
-
     #save-markers {
         display: block;
-        margin: 20px auto;
+        /* margin: 20px auto; */
         padding: 10px 20px;
         background-color: #4CAF50;
         color: white;
@@ -166,6 +142,7 @@ const mapImage = new Image();
 mapImage.src = '/images/map-placeholder.jpg';
 
 let markers = [];
+let deletedMarkers = [];
 let isDragging = false;
 let selectedMarker = null;
 
@@ -247,6 +224,7 @@ function handleRightClick(e) {
 
     if (markerIndex !== -1) {
         const removedMarker = markers.splice(markerIndex, 1)[0];
+        deletedMarkers.push(removedMarker.id);
         drawMap();
         addPlatformToList(removedMarker.id, removedMarker.info);
     }
@@ -281,7 +259,6 @@ canvas.addEventListener('dragover', (e) => e.preventDefault());
 canvas.addEventListener('drop', (e) => {
     e.preventDefault();
     const id = e.dataTransfer.getData('text');
-    console.log(e.dataTransfer.getData('text'));
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
@@ -306,17 +283,23 @@ saveButton.addEventListener('click', () => {
         x: marker.x,
         y: marker.y
     }));
-    console.log(JSON.stringify({ markers: markersData }));
+    
     fetch('{{ route("admin.map.update") }}', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
         },
-        body: JSON.stringify({ markers: markersData })
+        body: JSON.stringify({ 
+            markers: markersData,
+            deletedMarkers: deletedMarkers,
+        })
     })
     .then(response => response.json())
-    .then(data => alert(data.message))
+    .then(data => {
+        alert(data.message);
+        deletedMarkers = [];
+    })
     .catch(error => console.error('Error:', error));
 });
 
@@ -356,7 +339,7 @@ function showInfo(marker, e) {
     const rect = canvas.getBoundingClientRect();
    
     let left = marker.x 
-    let top = marker.y  - rect.top;
+    let top = marker.y
     
     infoBox.style.left = left + 'px';
     infoBox.style.top = top + 'px';
