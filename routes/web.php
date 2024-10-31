@@ -73,6 +73,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/platforms/create/{password?}', [PlatformController::class, 'create'])->name('admin.platforms.create');
         Route::post('/platforms/{password?}', [PlatformController::class, 'store'])->name('admin.platforms.store');
         Route::get('/participants/export/{password?}', [AdminController::class, 'export'])->name('admin.participants.export');
+        Route::get('/participants/export-platform/{platformId}', [AdminController::class, 'exportPlatformParticipants'])->name('admin.platform.export');
         Route::get('/participants/{password?}', [AdminController::class, 'participants'])->name('admin.participants');
         Route::get('/platforms/{id}/{password?}', [AdminController::class, 'platformShow'])->name('admin.platforms.show');
         Route::get('/platforms/{password?}', [AdminController::class, 'platformsIndex'])->name('admin.platforms.index');

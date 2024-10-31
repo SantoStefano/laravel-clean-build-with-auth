@@ -39,71 +39,10 @@
         </div>
     </div>
 
+
     <div class="row">
         <div class="col-md-12">
-            <h2 class="mb-4">Зарегистрированные участники</h2>
-            <div class="table-responsive">
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th colspan="5" class="text-center bg-light">Информация об участнике</th>
-                            <th colspan="4" class="text-center bg-light">Информация о наставнике</th>
-                        </tr>
-                        <tr>
-                            <th>ФИО участника</th>
-                            <th>Категория</th>
-                            <th>Образовательная организация</th>
-                            <th>Дополнительная информация</th>
-                            <th>Компетенция</th>
-                            <th>ФИО наставника</th>
-                            <th>Email</th>
-                            <th>Телефон</th>
-                            <th>Образовательная организация</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($platform->participants as $participant)
-                        <tr>
-                            <td>{{ $participant->name }}</td>
-                            <td>{{ $participant->is_student ? 'Студент' : 'Школьник' }}</td>
-                            <td>{{ $participant->attributes->where('dictionary.name', 'Образовательная организация')->first()->value ?? '-' }}</td>
-                            <td>
-                                @if($participant->is_student)
-                                    Специальность: {{ $participant->attributes->where('dictionary.name', 'Специальность')->first()->value ?? '-' }}<br>
-                                    Программа Профессионалы: {{ $participant->attributes->where('dictionary.name', 'Обучение по программе Профессионалы')->first()->value ?? '-' }}<br>
-                                    Курс: {{ $participant->attributes->where('dictionary.name', 'Курс обучения')->first()->value ?? '-' }}
-                                @else
-                                    Класс: {{ $participant->attributes->where('dictionary.name', 'Класс обучения')->first()->value ?? '-' }}<br>
-                                    Возраст: {{ $participant->attributes->where('dictionary.name', 'Возраст')->first()->value ?? '-' }}
-                                @endif
-                            </td>
-                            <td>{{ $platform->competency->name }}</td>
-                            <td>{{ $participant->mentor->name ?? 'Не указано' }}</td>
-                            <td>
-                                @if($participant->mentor)
-                                <a href="mailto:{{ $participant->mentor->email }}">
-                                    {{ $participant->mentor->email }}
-                                </a>
-                                @else
-                                Не указано
-                                @endif
-                            </td>
-                            <td>
-                                @if($participant->mentor)
-                                <a href="tel:{{ $participant->mentor->phone }}">
-                                    {{ $participant->mentor->phone }}
-                                </a>
-                                @else
-                                Не указано
-                                @endif
-                            </td>
-                            <td>{{ $participant->mentor->educational_org ?? 'Не указано' }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+            <x-participants-table :participants="$participants" :export-route="route('admin.platform.export', ['platformId' => $platform->id])" />
         </div>
     </div>
-</div>
 @endsection

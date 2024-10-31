@@ -11,9 +11,24 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class ParticipantsExport implements FromCollection, WithHeadings, ShouldAutoSize
 {
+    protected $platformId;
+
+    public function __construct($platformId = null)
+    {
+        $this->platformId = $platformId;
+    }
+
     public function collection()
     {
-        $participants = Participant::with(['mentor', 'attributes.dictionary', 'platform.competency'])->get();
+        $query = Participant::with(['mentor', 'attributes.dictionary', 'platform.competency']);
+
+        if ($this->platformId) {
+            $query->whereHas('platform', function ($q) {
+                $q->where('id', $this->platformId);
+            });
+        }
+
+        $participants = $query->get();
         
         return $participants->map(function ($participant) {
             return [

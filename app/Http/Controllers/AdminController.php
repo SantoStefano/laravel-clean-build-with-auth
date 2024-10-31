@@ -22,7 +22,7 @@ class AdminController extends Controller
 
     public function participants()
     {
-        $participants = Participant::with(['mentor', 'attributes.dictionary'])->get();
+        $participants = Participant::with(['mentor', 'attributes.dictionary', 'platform.competency'])->paginate(10);
         return view('admin.participants', [
             'participants' => $participants
         ]);
@@ -42,13 +42,22 @@ class AdminController extends Controller
     {
         $platform = Platform::with(['competency', 'attributes.dictionary', 'participants.attributes.dictionary', 'participants.mentor'])
             ->findOrFail($id);
+        
+        $participants = $platform->participants()->paginate(10);
+        
         return view('admin.platforms.show', [
-            'platform' => $platform
+            'platform' => $platform,
+            'participants' => $participants
         ]);
     }
 
     public function export()
     {
         return Excel::download(new ParticipantsExport, 'Все участники.xlsx');
+    }
+
+    public function exportPlatformParticipants($platformId)
+    {
+        return Excel::download(new ParticipantsExport($platformId), 'platform_participants.xlsx');
     }
 }
