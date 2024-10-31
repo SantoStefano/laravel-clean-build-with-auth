@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreParticipantRequest;
 use App\Mail\AdminApplicationNotification;
 use App\Mail\MentorApplicationNotification;
 use App\Models\File;
@@ -23,7 +24,7 @@ class ApplicationController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreParticipantRequest $request)
     {
         // Создаем участника
         $participant = Participant::create([

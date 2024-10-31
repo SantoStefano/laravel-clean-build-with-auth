@@ -23,13 +23,13 @@
                     <label for="attr_{{ $attribute->id }}">{{ $attribute->name }}</label>
                     @if($attribute->type === 'file')
                         <input type="file" class="form-control" id="attr_{{ $attribute->id }}" 
-                               name="pattributes[{{ $attribute->id }}]">
+                               name="pattributes[{{ $attribute->id }}]" required>
                     @elseif ($attribute->type === 'date')
                         <input type="date" class="form-control" id="attr_{{ $attribute->id }}" 
-                                name="pattributes[{{ $attribute->id }}]">
+                                name="pattributes[{{ $attribute->id }}]" required>
                     @else
                         <input type="text" class="form-control" id="attr_{{ $attribute->id }}" 
-                               name="pattributes[{{ $attribute->id }}]">
+                               name="pattributes[{{ $attribute->id }}]" required>
                     @endif
                 </div>
                 @endforeach

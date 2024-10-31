@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StorePlatformRequest;
 use App\Models\Competency;
 use App\Models\File;
 use App\Models\Platform;
@@ -28,7 +29,7 @@ class PlatformController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StorePlatformRequest $request)
 {
     $platform = Platform::create([
         'competency_id' => $request->competency_id,
